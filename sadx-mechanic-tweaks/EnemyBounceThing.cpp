@@ -11,7 +11,7 @@ void __cdecl EnemyBounceThing_r(Uint8 playerID, float speedX, float speedY, floa
 #if 0
 	auto index = playerID;
 	auto v5 = (EntityData2*)EntityData2Ptrs[index];
-	auto data1 = CharObj1Ptrs[index];
+	auto data1 = EntityData1Ptrs[index];
 	auto data2 = CharObj2Ptrs[index];
 	if (v5 && data2 && data1)
 	{
@@ -38,7 +38,7 @@ void __cdecl EnemyBounceThing_r(Uint8 playerID, float speedX, float speedY, floa
 		data2->Speed = newSpeed;
 	}
 #else
-	auto data1 = CharObj1Ptrs[playerID];
+	auto data1 = EntityData1Ptrs[playerID];
 	auto data2 = CharObj2Ptrs[playerID];
 
 	if (!data1 || !data2)

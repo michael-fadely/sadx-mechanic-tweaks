@@ -15,20 +15,11 @@ PointerInfo jumps[] = {
 
 static const int jump_cancel = Buttons_B;
 
-#pragma pack(push, 1)
-struct HomingAttackTarget
-{
-	EntityData1 *entity;
-	float distance;
-};
-#pragma pack(pop)
-
-
-DataPointer(NJS_TEXLIST, TARGET_TEXLIST, 0x029384AC);
-DataPointer(NJS_SPRITE, TornadoTarget_SPRITE, 0x029384F0);
-FunctionPointer(void, LoadNoNamePVM, (NJS_TEXLIST *a1), 0x00420D80);
+//DataPointer(NJS_TEXLIST, TARGET_TEXLIST, 0x029384AC);
+//DataPointer(NJS_SPRITE, TornadoTarget_SPRITE, 0x029384F0);
+//FunctionPointer(void, LoadNoNamePVM, (NJS_TEXLIST *a1), 0x00420D80);
 FunctionPointer(int, sub_4383B0, (int a1, int a2), 0x4383B0);
-DataArray(HomingAttackTarget, HomingAttackTarget_Sonic, 0x03B259C0, 657);
+//DataArray(HomingAttackTarget, HomingAttackTarget_Sonic, 0x03B259C0, 657);
 
 NJS_SPRITE target_sprite {};
 
@@ -65,8 +56,8 @@ static void draw_reticle(NJS_VECTOR& target_pos, bool red)
 	njPopMatrix(1);
 
 	const auto m     = _nj_screen_.dist / vd.z;
-	const auto xhalf = HorizontalResolution / 2.0f;
-	const auto yhalf = VerticalResolution / 2.0f;
+	const auto xhalf = static_cast<float>(HorizontalResolution) / 2.0f;
+	const auto yhalf = static_cast<float>(VerticalResolution) / 2.0f;
 
 	vd.x = vd.x * m + xhalf;
 	vd.y = vd.y * m + yhalf;
@@ -104,21 +95,21 @@ static void DrawHomingIndicators()
 {
 	// TODO: maybe show for light speed dash rings
 
-	if (!CharObj1Ptrs[0])
+	if (!EntityData1Ptrs[0])
 	{
 		return;
 	}
 
 	LoadNoNamePVM(&TARGET_TEXLIST);
 
-	auto& ppos = CharObj1Ptrs[0]->Position;
+	auto& ppos = EntityData1Ptrs[0]->Position;
 
 	target_sprite.ang += NJM_DEG_ANG(5.625f);
 	target_sprite.ang %= 65536;
 
-	DisplayDebugStringFormatted(0, "%04X", CharObj1Ptrs[0]->Status);
+	DisplayDebugStringFormatted(0, "%04X", EntityData1Ptrs[0]->Status);
 
-	if (CharObj1Ptrs[0]->Status & Status_LightDash && CharObj2Ptrs[0]->Upgrades & (Upgrades_AncientLight | Upgrades_FightingGloves))
+	if (EntityData1Ptrs[0]->Status & Status_LightDash && CharObj2Ptrs[0]->Upgrades & (Upgrades_AncientLight | Upgrades_FightingGloves))
 	{
 		for (int i = 0; i < HomingAttackTarget_Sonic_Length; i++)
 		{
@@ -136,12 +127,12 @@ static void DrawHomingIndicators()
 		}
 	}
 
-	if (!(CharObj1Ptrs[0]->Status & Status_Ground) && CharObj1Ptrs[0]->Status & Status_Ball)
+	if (!(EntityData1Ptrs[0]->Status & Status_Ground) && EntityData1Ptrs[0]->Status & Status_Ball)
 	{
 		auto nearest = get_nearest();
 		if (nearest != nullptr)
 		{
-			draw_reticle(ppos, CharObj1Ptrs[0]->Rotation.y, nearest->entity->Position);
+			draw_reticle(ppos, EntityData1Ptrs[0]->Rotation.y, nearest->entity->Position);
 		}
 	}
 }
@@ -159,7 +150,7 @@ static __int16 __cdecl RunSceneLogic_r()
 extern "C"
 {
 	__declspec(dllexport) PointerList Jumps[] = { { arrayptrandlengthT(jumps, int) } };
-	__declspec(dllexport) ModInfo SADXModInfo = { ModLoaderVer };
+	__declspec(dllexport) ModInfo SADXModInfo = { ModLoaderVer, nullptr, nullptr, 0, nullptr, 0, nullptr, 0, nullptr };
 	__declspec(dllexport) void __cdecl Init(const char* path, const HelperFunctions& helperFunctions)
 	{
 		target_sprite = TornadoTarget_SPRITE;

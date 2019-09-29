@@ -8,6 +8,7 @@ static constexpr float speed_threshold = 1.5f;
 static int last_status[8] = {};
 
 static BOOL __stdcall Sonic_ChargeSpindash_(CharObj2* data2, EntityData1* data1);
+
 static void __declspec(naked) Sonic_ChargeSpindash_asm()
 {
 	__asm
@@ -23,7 +24,6 @@ static Trampoline Sonic_ChargeSpindash_t(0x00496EE0, 0x00496EE6, Sonic_ChargeSpi
 
 static BOOL __stdcall Sonic_ChargeSpindash_original(CharObj2* data2, EntityData1* data1)
 {
-	// ReSharper disable once CppEntityNeverUsed
 	void* original = Sonic_ChargeSpindash_t.Target();
 	__asm
 	{
@@ -49,7 +49,7 @@ static BOOL __stdcall Sonic_ChargeSpindash_(CharObj2* data2, EntityData1* data1)
 		data2->SpindashSpeed        = data2->Speed.x;
 		data2->LightdashTime        = 0;
 		data2->LightdashTimer       = 0;
-		data2->field_7E             = 0;
+		data2->SonicSpinTimer       = 0;
 
 		BOOL result = Sonic_ReleaseSpindash(data1, data2);
 
@@ -64,7 +64,7 @@ void ClassicRoll_OnFrame()
 {
 	for (Uint32 i = 0; i < 8; i++)
 	{
-		auto data1 = CharObj1Ptrs[i];
+		auto data1 = EntityData1Ptrs[i];
 		auto data2 = CharObj2Ptrs[i];
 
 		if (data1 == nullptr || data1->CharID != Characters_Sonic || data2 == nullptr)
