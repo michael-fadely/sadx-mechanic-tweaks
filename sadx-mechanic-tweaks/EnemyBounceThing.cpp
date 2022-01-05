@@ -4,50 +4,48 @@
 
 const void* EnemyBounceThing_ptr = reinterpret_cast<void*>(0x00441280);
 
-FunctionPointer(void, sub_43EC00, (EntityData1*, NJS_VECTOR*), 0x43EC00);
+FunctionPointer(void, WorldToPlayer, (EntityData1*, NJS_VECTOR*), 0x43EC00);
 
-void __cdecl EnemyBounceThing_r(Uint8 playerID, float speedX, float speedY, float speedZ)
+void __cdecl EnemyBounceThing_r(Uint8 player_id, float velocity_x, float velocity_y, float velocity_z)
 {
 #if 0
-	auto index = playerID;
-	auto v5 = (EntityData2*)EntityData2Ptrs[index];
-	auto data1 = EntityData1Ptrs[index];
-	auto data2 = CharObj2Ptrs[index];
+	const Uint8 index = player_id;
+	EntityData2* v5 = EntityData2Ptrs[index];
+	EntityData1* data1 = EntityData1Ptrs[index];
+	CharObj2* data2 = CharObj2Ptrs[index];
+
 	if (v5 && data2 && data1)
 	{
-		// what
-		v5->field_4.x = speedX;
-		v5->field_4.y = speedY;
-		v5->field_4.z = speedZ;
-
-		// obvious
-		NJS_VECTOR newSpeed = { speedX, speedY, speedZ };
-
-		// what
-		sub_43EC00(data1, &newSpeed);
+		v5->VelocityDirection = { velocity_x, velocity_y, velocity_z };
+		NJS_VECTOR new_speed = v5->VelocityDirection;
+		WorldToPlayer(data1, &new_speed);
 
 		// Nullifies horizontal speed
-		if (newSpeed.x <= 0.001 && newSpeed.x >= -0.001)
+		if (new_speed.x <= 0.001f && new_speed.x >= -0.001f)
 		{
-			newSpeed.x = 0;
+			new_speed.x = 0;
 		}
-		if (newSpeed.z <= 0.001 && newSpeed.z >= -0.001)
+
+		if (new_speed.z <= 0.001f && new_speed.z >= -0.001f)
 		{
-			newSpeed.z = 0;
+			new_speed.z = 0;
 		}
-		data2->Speed = newSpeed;
+
+		data2->Speed = new_speed;
 	}
 #else
-	auto data1 = EntityData1Ptrs[playerID];
-	auto data2 = CharObj2Ptrs[playerID];
+	// TODO: Update EntityData2::VelocityDirection
+
+	EntityData1* data1 = EntityData1Ptrs[player_id];
+	CharObj2* data2 = CharObj2Ptrs[player_id];
 
 	if (!data1 || !data2)
 	{
 		return;
 	}
 
-	NJS_VECTOR newSpeed = { speedX, speedY, speedZ };
-	sub_43EC00(data1, &newSpeed);
+	NJS_VECTOR new_speed = { velocity_x, velocity_y, velocity_z };
+	WorldToPlayer(data1, &new_speed);
 
 	switch (data1->CharID)
 	{
@@ -55,14 +53,14 @@ void __cdecl EnemyBounceThing_r(Uint8 playerID, float speedX, float speedY, floa
 		case Characters_Big:
 		case Characters_Eggman:
 		case Characters_Tikal:
-			data2->Speed = newSpeed;
+			data2->Speed = new_speed;
 			return;
 
 		default:
 			break;
 	}
 
-	if (!(data1->Status & Status_Ground) && (speedY > 0.0f && data2->Speed.y < 0.0f && data2->Speed.y < -speedY))
+	if (!(data1->Status & Status_Ground) && (velocity_y > 0.0f && data2->Speed.y < 0.0f && data2->Speed.y < -velocity_y))
 	{
 		bool set = false;
 
@@ -88,18 +86,18 @@ void __cdecl EnemyBounceThing_r(Uint8 playerID, float speedX, float speedY, floa
 		if (set)
 		{
 			data2->JumpTime = 0;
-			newSpeed.y = -(data2->Speed.y * ((data1->CharID == Characters_Amy && data1->Action == 21) ? 1.5f : 1.0f));
-			PrintDebug("Bounce speed: %f\n", newSpeed.y);
+			new_speed.y = -(data2->Speed.y * ((data1->CharID == Characters_Amy && data1->Action == 21) ? 1.5f : 1.0f));
+			PrintDebug("Bounce speed: %f\n", new_speed.y);
 		}
 	}
 
-	if (data1->Status & Status_Ground || speedX != 0.0f || speedZ != 0.0f)
+	if (data1->Status & Status_Ground || velocity_x != 0.0f || velocity_z != 0.0f)
 	{
-		data2->Speed = newSpeed;
+		data2->Speed = new_speed;
 	}
 	else
 	{
-		data2->Speed.y = newSpeed.y;
+		data2->Speed.y = new_speed.y;
 	}
 #endif
 }

@@ -1,17 +1,12 @@
+#include <cmath>
+#include <cstdint>
+
 #include <SADXModLoader.h>
 #include <Trampoline.h>
-#include <cmath>
 #include "EnemyBounceThing.h"
 #include "WaterRun.h"
 #include "ClassicJump.h"
 #include "ClassicRoll.h"
-
-PointerInfo jumps[] = {
-	// this didn't work somehow
-	ptrdecl(loc_4496E1, WaterRun_asm),
-	ptrdecl(EnemyBounceThing_ptr, EnemyBounceThing_r),
-	ptrdecl(DoJumpThing, DoJumpThing_r)
-};
 
 static const int jump_cancel = Buttons_B;
 
@@ -21,9 +16,9 @@ static const int jump_cancel = Buttons_B;
 FunctionPointer(int, sub_4383B0, (int a1, int a2), 0x4383B0);
 //DataArray(HomingAttackTarget, HomingAttackTarget_Sonic, 0x03B259C0, 657);
 
-NJS_SPRITE target_sprite {};
+static NJS_SPRITE target_sprite {};
 
-static __int16 __cdecl RunSceneLogic_r();
+static int16_t __cdecl RunSceneLogic_r();
 static Trampoline RunSceneLogic_t(0x00413D40, 0x00413D45, reinterpret_cast<void*>(&RunSceneLogic_r));
 
 HomingAttackTarget* get_nearest()
@@ -32,7 +27,8 @@ HomingAttackTarget* get_nearest()
 
 	for (int i = 0; i < HomingAttackTarget_Sonic_Length; i++)
 	{
-		auto& e = HomingAttackTarget_Sonic[i];
+		HomingAttackTarget& e = HomingAttackTarget_Sonic[i];
+
 		if (e.entity == nullptr)
 		{
 			break;
@@ -47,7 +43,7 @@ HomingAttackTarget* get_nearest()
 	return result;
 }
 
-static void draw_reticle(NJS_VECTOR& target_pos, bool red)
+static void draw_reticle(const NJS_VECTOR& target_pos, const bool red)
 {
 	NJS_VECTOR vd {};
 
@@ -73,7 +69,7 @@ static void draw_reticle(NJS_VECTOR& target_pos, bool red)
 	njColorBlendingMode(NJD_DESTINATION_COLOR, NJD_COLOR_BLENDING_INVSRCALPHA);
 }
 
-static void draw_reticle(NJS_VECTOR& player_pos, Angle player_angle, NJS_VECTOR& target_pos)
+static void draw_reticle(const NJS_VECTOR& player_pos, const Angle player_angle, const NJS_VECTOR& target_pos)
 {
 	NJS_VECTOR delta = {
 		player_pos.x - target_pos.x,
@@ -102,8 +98,6 @@ static void DrawHomingIndicators()
 
 	LoadNoNamePVM(&TARGET_TEXLIST);
 
-	auto& ppos = EntityData1Ptrs[0]->Position;
-
 	target_sprite.ang += NJM_DEG_ANG(5.625f);
 	target_sprite.ang %= 65536;
 
@@ -113,14 +107,16 @@ static void DrawHomingIndicators()
 	{
 		for (int i = 0; i < HomingAttackTarget_Sonic_Length; i++)
 		{
-			auto& e = HomingAttackTarget_Sonic[i];
+			const HomingAttackTarget& e = HomingAttackTarget_Sonic[i];
+
 			if (e.entity == nullptr)
 			{
 				break;
 			}
 
-			auto l = e.entity->CollisionInfo->List;
-			if (l == 2 || l == 3)
+			const short list = e.entity->CollisionInfo->List;
+
+			if (list == 2 || list == 3)
 			{
 				draw_reticle(e.entity->Position, true);
 			}
@@ -129,23 +125,32 @@ static void DrawHomingIndicators()
 
 	if (!(EntityData1Ptrs[0]->Status & Status_Ground) && EntityData1Ptrs[0]->Status & Status_Ball)
 	{
-		auto nearest = get_nearest();
+		HomingAttackTarget* nearest = get_nearest();
+
 		if (nearest != nullptr)
 		{
-			draw_reticle(ppos, EntityData1Ptrs[0]->Rotation.y, nearest->entity->Position);
+			draw_reticle(EntityData1Ptrs[0]->Position, EntityData1Ptrs[0]->Rotation.y, nearest->entity->Position);
 		}
 	}
 }
 
-static __int16 __cdecl RunSceneLogic_r()
+static int16_t __cdecl RunSceneLogic_r()
 {
 	const auto original = reinterpret_cast<decltype(RunSceneLogic_r)*>(RunSceneLogic_t.Target());
-	auto result = original();
+	const int16_t result = original();
 
 	ClassicRoll_OnFrame();
 	DrawHomingIndicators();
+
 	return result;
 }
+
+PointerInfo jumps[] = {
+	// this didn't work somehow
+	ptrdecl(loc_4496E1, WaterRun_asm),
+	ptrdecl(EnemyBounceThing_ptr, EnemyBounceThing_r),
+	ptrdecl(DoJumpThing, DoJumpThing_r)
+};
 
 extern "C"
 {
